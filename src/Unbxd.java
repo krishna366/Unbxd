@@ -76,7 +76,7 @@ public class Unbxd {
 			System.out.println("Enter the artist name(Q to quit)");
 			
 			String input = in.nextLine();
-			if(input.equals("Q")) 
+			if(input.equals("Q") || input.equals("q")) 
 				status = STATES.QUIT;
 			else{
 				searchQueriesForArtist(input);
