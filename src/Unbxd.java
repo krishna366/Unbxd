@@ -61,12 +61,12 @@ public class Unbxd {
 			String input = in.nextLine();
 			if(input.equals("1")) status = STATES.SEARCH_PRODUCTS;
 			if(input.equals("2")) status = STATES.SEARCH_QUERIES;
-			if(input.equals("Q")) status = STATES.QUIT;
+			if(input.equals("Q") || input.equals("q")) status = STATES.QUIT;
 		}else if(status == STATES.SEARCH_PRODUCTS){
 			System.out.println("Enter the search string(Q to quit)");
 			
 			String input = in.nextLine();
-			if(input.equals("Q")) 
+			if(input.equals("Q") || input.equals("q")) 
 				status = STATES.QUIT;
 			else{
 				searchProductsForQuery(input);
