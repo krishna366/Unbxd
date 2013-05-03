@@ -60,22 +60,18 @@ public class LeafNode<V> extends Node<V>{
 			return parent;
 		}else{
 			int pos = findInsertPos(key);
-//			if(keys[pos] == key){ //Replace the value
-//				this.values[pos] = (value);
-//			}else{
-				if(pos != nKeys){
-					// Shift the array from index pos by one place
-					System.arraycopy(keys, pos, keys, pos + 1, nKeys - pos);
-					System.arraycopy(values, pos, values, pos + 1, nKeys - pos);
-				}
-				
-				//Set the pointers right
-				this.keys[pos] = key;
-				this.values[pos] = (value);
-				
-				// Increment the number of keys
-				nKeys++;
-//			}
+			if(pos != nKeys){
+				// Shift the array from index pos by one place
+				System.arraycopy(keys, pos, keys, pos + 1, nKeys - pos);
+				System.arraycopy(values, pos, values, pos + 1, nKeys - pos);
+			}
+			
+			//Set the pointers right
+			this.keys[pos] = key;
+			this.values[pos] = (value);
+			
+			// Increment the number of keys
+			nKeys++;
 		}
 		
 		return null;

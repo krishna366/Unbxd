@@ -31,11 +31,22 @@ public abstract class Node<V> {
 		if(nKeys == 0 || key < this.keys[0]) return 0;
 		if(key > this.keys[nKeys - 1]) return nKeys;
 		
-		for(int i = 0; i < nKeys; i++){
-			if(keys[i] >= key)
-				return i;
+		int lb = 0;
+		int ub = nKeys - 1;
+		return binSearch(key, lb, ub);
+	}
+	
+	protected int binSearch(int key, int lb, int ub){
+		if(keys[lb] >= key) return lb;
+		
+		int mid = (lb + ub) / 2;
+		
+		if(keys[mid] < key){
+			lb = mid + 1;
+		}else{
+			ub = mid;
 		}
 		
-		return -1;
+		return binSearch(key, lb, ub);
 	}
 }

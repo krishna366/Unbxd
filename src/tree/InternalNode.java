@@ -122,11 +122,11 @@ public class InternalNode<V> extends Node<V>{
 
 	@Override
 	protected List<V> search(int key) {
-		for(int i = 0; i < nKeys; i++){
-			if(key <= keys[i])
-				return pointers[i].search(key);
+		if(key > keys[nKeys - 1])
+			return pointers[nKeys].search(key);
+		else{
+			int index = binSearch(key, 0, nKeys - 1);
+			return pointers[index].search(key);
 		}
-		return pointers[nKeys].search(key);
 	}
-
 }
