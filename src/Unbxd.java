@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,6 +22,9 @@ public class Unbxd {
 	private final int iMax = 100;
 	private final int lMax = 10000;
 	
+	private String productsFileName;
+	private String queriesFileName;
+	
 	private BPlusTree<Product> productTreeProductIdIndex;
 	private BPlusTree<Product> productTreeArtistIndex;
 	private BPlusTree<Query> queryTreeProductIdIndex;
@@ -32,6 +33,8 @@ public class Unbxd {
 	private Scanner in;
 	
 	enum STATES{
+		READ_PRODUCTS,
+		READ_QUERIES,
 		WHAT_TO_DO,
 		SEARCH_PRODUCTS,
 		SEARCH_QUERIES,
@@ -42,17 +45,39 @@ public class Unbxd {
 	
 	public Unbxd() throws IOException {
 		in = new Scanner(System.in);
-		
-		buildProductIndexes();
-		buildQueryIndexes();
-		
-		System.out.println();
-		
-		status = STATES.WHAT_TO_DO;
+		status = STATES.READ_PRODUCTS;
 	}
 	
-	public void ask(){
-		if(status == STATES.WHAT_TO_DO){
+	public void ask() throws IOException{
+		if(status == STATES.READ_PRODUCTS){
+			System.out.println("Enter the path of the file having products info(Q to quit) : ");
+			String input = in.nextLine();
+			
+			if(input.equals("Q") || input.equals("q")) status = STATES.QUIT;
+			else{
+				File f = new File(input);
+				if(f.exists()){
+					productsFileName = input;
+					this.buildProductIndexes();
+					
+					status = STATES.READ_QUERIES;
+				}
+			}
+		}else if(status == STATES.READ_QUERIES){
+			System.out.println("Enter the path of the file having queries info(Q to quit) : ");
+			String input = in.nextLine();
+			
+			if(input.equals("Q") || input.equals("q")) status = STATES.QUIT;
+			else{
+				File f = new File(input);
+				if(f.exists()){
+					queriesFileName = input;
+					this.buildQueryIndexes();
+					
+					status = STATES.WHAT_TO_DO;
+				}
+			}
+		}else if(status == STATES.WHAT_TO_DO){
 			System.out.println("What do you want to do?");
 			System.out.println("1) Look for products matching a search string");
 			System.out.println("2) Look for search strings matching an artist");
@@ -128,98 +153,41 @@ public class Unbxd {
 	}
 	
 	private void buildProductIndexes() throws IOException{
-		System.out.println("Enter the path of the file having product info : ");
-		String fileName = in.nextLine();
-		File f = new File(fileName);
-		while(!f.exists()){
-			System.out.println("File doesn't exist. Enter the path of the file having product info(Q to quit) : ");
-			fileName = in.nextLine();
-			
-			if(fileName.equals("Q")) System.exit(0);
-			f = new File(fileName);
-		}
-		
 		System.out.println("Building Product Indexes...");
 		long t = new Date().getTime();
-		
-		
-		BufferedReader br = new BufferedReader(new FileReader(f));
-		
 		productTreeProductIdIndex = new BPlusTree<Product>(iMax, lMax);
 		productTreeArtistIndex = new BPlusTree<Product>(iMax, lMax);
-		while (br.ready()) {
-		  String s = br.readLine();
-		  Product product = new Product(s);
-		  productTreeProductIdIndex.add(product.getId(), product);
-		  productTreeArtistIndex.add(product.getArtist(), product);
+		
+		Product.initTableScan(productsFileName);
+		Product product = Product.fetchNext();
+		while(product != null){
+			productTreeProductIdIndex.add(product.getId(), product);
+			productTreeArtistIndex.add(product.getArtist(), product);
+			
+			product = Product.fetchNext();
 		}
-		br.close();
+		Product.closeTableScan();
 		long indexTime = new Date().getTime() - t;
 		System.out.println("Took " + indexTime + " millisecs to build product indexes\n");
 	}
 	
 	private void buildQueryIndexes() throws IOException{
-		System.out.println("Enter the path of the file having query info : ");
-		
-		String fileName = in.nextLine();
-		File f = new File(fileName);
-		while(!f.exists()){
-			System.out.println("File doesn't exist. Enter the path of the file having query info(Q to quit) : ");
-			fileName = in.nextLine();
-			
-			if(fileName.equals("Q")) System.exit(0);
-			f = new File(fileName);
-		}
-		
 		System.out.println("Building Query Indexes...");
 		long t = new Date().getTime();
-		
-		BufferedReader br = new BufferedReader(new FileReader(f));
-		
 		queryTreeProductIdIndex = new BPlusTree<Query>(iMax, lMax);
 		queryTreeQueryIndex = new BPlusTree<Query>(iMax, lMax);
-		while (br.ready()) {
-		  String s = br.readLine();
-		  Query query = new Query(s);
-		  queryTreeProductIdIndex.add(query.getProductId(), query);
-		  queryTreeQueryIndex.add(query.getQuery(), query);
+		
+		Query.initTableScan(queriesFileName);
+		Query query = Query.fetchNext();
+		while(query != null){
+			queryTreeProductIdIndex.add(query.getProductId(), query);
+			queryTreeQueryIndex.add(query.getQuery(), query);
+			  
+			query = Query.fetchNext();
 		}
-		br.close();
+		Query.closeTableScan();
 		
 		long indexTime = new Date().getTime() - t;
 		System.out.println("Took " + indexTime + " millisecs to build query indexes\n");
-	}
-
-	public BPlusTree<Product> getProductTreeProductIdIndex() {
-		return productTreeProductIdIndex;
-	}
-
-	public void setProductTreeProductIdIndex(
-			BPlusTree<Product> productTreeProductIdIndex) {
-		this.productTreeProductIdIndex = productTreeProductIdIndex;
-	}
-
-	public BPlusTree<Product> getProductTreeArtistIndex() {
-		return productTreeArtistIndex;
-	}
-
-	public void setProductTreeArtistIndex(BPlusTree<Product> productTreeArtistIndex) {
-		this.productTreeArtistIndex = productTreeArtistIndex;
-	}
-
-	public BPlusTree<Query> getQueryTreeProductIdIndex() {
-		return queryTreeProductIdIndex;
-	}
-
-	public void setQueryTreeProductIdIndex(BPlusTree<Query> queryTreeProductIdIndex) {
-		this.queryTreeProductIdIndex = queryTreeProductIdIndex;
-	}
-
-	public BPlusTree<Query> getQueryTreeQueryIndex() {
-		return queryTreeQueryIndex;
-	}
-
-	public void setQueryTreeQueryIndex(BPlusTree<Query> queryTreeQueryIndex) {
-		this.queryTreeQueryIndex = queryTreeQueryIndex;
 	}
 }
